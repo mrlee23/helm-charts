@@ -1,0 +1,7 @@
+apiVersion: v2
+name: simple-rolling-application
+description: A Helm chart for Simple Rolling Application
+type: application
+version: 0.1.0
+appVersion: "1.16.0"
+

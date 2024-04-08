@@ -1,0 +1,11 @@
+applicationName: "application"
+
+configMap: {}
+
+secrets:
+  opaque: {}
+  dockerconfigjson: {}
+
+deployment:
+  enabled: true
+
