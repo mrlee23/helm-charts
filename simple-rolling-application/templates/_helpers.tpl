@@ -2,7 +2,7 @@
 Expand the name of the chart.
 */}}
 {{- define "project.name" -}}
-{{- default .Values.application.name .Chart.Name | trunc 63 | trimSuffix "-" }}
+{{- default .Chart.Name .Values.application.name | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
@@ -53,4 +53,12 @@ Template Rendering Utility.
 {{- if .value }}
 {{ toYaml .value | indent .indent }}
 {{- end }}
+{{- end }}
+
+{{/*
+Container Image Name Utility.
+*/}}
+{{- define "util.toContainerImage" -}}
+{{- $imageRevision := .tag | toString }}
+{{- printf "%s:%s" .repository $imageRevision -}}
 {{- end }}

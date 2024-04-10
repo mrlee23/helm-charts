@@ -8,22 +8,28 @@ application:
 
 configMap:
   enabled: true
+
   labels: {}
   annotations: {}
   data:
-    my-config1: {}
+    app:
+      nodeEnv: production
+      serviceName: test
+      hostname: "0.0.0.0"
     my-config2: {}
 
 secret:
   enabled: true
+
   labels: {}
   annotations: {}
   data:
-    opaque:
+    general:
       type: Opaque
       labels: {}
       annotations: {}
-      data: {}
+      data:
+        authorization: "TEST"
     dockerconfigjson:
       type: kubernetes.io/dockerconfigjson
       labels: {}
@@ -37,11 +43,154 @@ rbac:
 deployment:
   enabled: true
 
+  labels: {}
+  annotations: {}
+
+  podLabels: {}
+  podAnnotations: {}
+
+  strategy:
+    type: RollingUpdate
+
+  nodeSelector: {}
+  affinity: {}
+  
+  replicas: 3
+
+  image:
+    repository: "bb" # required
+    tag: "1234" # required
+    pullPolicy: IfNotPresent
+  
+  command: []
+
+  args: []
+  
+  ports:
+  # - name: http
+  #   containerPort: 3000
+  #   protocol: TCP
+
+  env:
+    NODE_ENV:
+      type: configmap
+      name: app
+      key: nodeEnv
+    SERVICE_NAME:
+      type: configmap
+      name: app
+      key: serviceName
+    AUTHORIZATION:
+      type: secret
+      name: general
+      key: authorization
+
+  livenessProbe:
+    enabled: false
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 3
+    exec: {}
+    httpGet: {}
+    tcpSocket: {}
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 3
+    exec: {}
+    httpGet: {}
+    tcpSocket: {}
+
+  resources:
+    limits:
+      cpu: 300m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
 autoscaling:
-  enabled: false
+  enabled: true
+  
+  labels: {}
+  annotations: {}
+
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resources:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Resource
+    resource:
+      name: memory
+      target: 
+         type: Utilization
+         averageUtilization: 85
+  behavior: {}
 
 service:
   enabled: true
+  
+  labels: {}
+  annotations: {}
+
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 3000
+      protocol: TCP
+      targetPort: 3000
 
 ingress:
-  enabled: false
+  enabled: true
+  
+  labels: {}
+  annotations: {}
+
+  ingressClassName: nginx
+  servicePort: http
+  hosts:
+    - host: example.com
+      paths:
+      - path: /
+        pathType: Prefix
+        servicePort: http
+
+networkPolicy:
+  enabled: true
+
+  labels: {}
+  annotations: {}
+
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 172.17.0.0/16
+        except:
+        - 172.17.1.0/24
+    - namespaceSelector:
+        matchLabels:
+          project: myproject
+    - podSelector:
+        matchLabels:
+          role: frontend
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  # - to:
+  #   - ipBlock:
+  #       cidr: 10.0.0.0/24
+  #   ports:
+  #   - protocol: TCP
+  #     port: 5978

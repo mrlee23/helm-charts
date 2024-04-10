@@ -1,0 +1,107 @@
+{{- if .Values.deployment.enabled -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "project.name" . }}
+  namespace: {{ include "project.namespace" . }}
+  labels:
+    {{- include "project.labels" . | nindent 4 }}
+    {{- include "util.toYaml" ( dict "value" .Values.deployment.labels "indent" 4 ) }}
+  annotations:
+    {{- include "util.toYaml" ( dict "value" .Values.deployment.annotations "indent" 4 ) }}
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  selector:
+    matchLabels:
+      {{- include "project.selectorLabels" . | nindent 6 }}
+  strategy:
+    {{- include "util.toYaml" ( dict "value" .Values.deployment.strategy "indent" 4 ) }}
+  template:
+    metadata:
+      labels:
+        {{- include "project.selectorLabels" . | nindent 8 }}
+        {{- include "util.toYaml" ( dict "value" .Values.deployment.podLabels "indent" 8 ) }}
+      annotations:
+        {{- include "util.toYaml" ( dict "value" .Values.deployment.podAnnotations "indent" 8 ) }}
+      spec:
+        {{- if .Values.deployment.nodeSelector }}
+        nodeSelector:
+          {{- include "util.toYaml" ( dict "value" .Values.deployment.nodeSelector "indent" 8 ) }}
+        {{- end }}
+        {{- if .Values.deployment.affinity }}
+        affinity:
+          {{- include "util.toYaml" ( dict "value" .Values.deployment.affinity "indent" 8 ) }}
+        {{- end }}
+        containers:
+          - name: {{ include "project.name" . }}
+            image: {{ include "util.toContainerImage" ( dict "repository" .Values.deployment.image.repository "tag" .Values.deployment.image.tag) }}
+            imagePullPolicy: {{ .Values.deployment.image.pullPolicy }}
+            {{- if .Values.deployment.resources }}
+            resources:
+              {{- include "util.toYaml" ( dict "value" .Values.deployment.resources "indent" 14 ) }}
+            {{- end }}
+            {{- if .Values.deployment.ports }}
+            ports:
+              {{- include "util.toYaml" ( dict "value" .Values.deployment.ports "indent" 14 ) }}
+            {{- end }}
+            {{- if .Values.deployment.command }}
+            command: {{ .Values.deployment.command }}
+            {{- end }}
+            {{- if .Values.deployment.args }}
+            args: {{ .Values.deployment.args }}
+            {{- end }}
+            {{- if .Values.deployment.livenessProbe.enabled }} 
+            livenessProbe:
+              initialDelaySeconds: {{ .Values.deployment.livenessProbe.initialDelaySeconds }}
+              periodSeconds: {{ .Values.deployment.livenessProbe.periodSeconds }}
+              timeoutSeconds: {{ .Values.deployment.livenessProbe.timeoutSeconds }}
+              successThreshold: {{ .Values.deployment.livenessProbe.successThreshold }}
+              failureThreshold: {{ .Values.deployment.livenessProbe.failureThreshold }}
+              {{- if .Values.deployment.livenessProbe.exec }}
+              exec:
+                {{- include "util.toYaml" ( dict "value" .Values.deployment.livenessProbe.exec "indent" 16 ) }}
+              {{- else if .Values.deployment.livenessProbe.httpGet }}
+              httpGet:
+                {{- include "util.toYaml" ( dict "value" .Values.deployment.livenessProbe.httpGet "indent" 16 ) }}
+              {{- else if .Values.deployment.livenessProbe.tcpSocket }}
+              tcpSocket:
+                {{- include "util.toYaml" ( dict "value" .Values.deployment.livenessProbe.tcpSocket "indent" 16 ) }}
+              {{- end }}
+            {{- end }}
+            {{- if .Values.deployment.readinessProbe.enabled }} 
+            readinessProbe:
+              initialDelaySeconds: {{ .Values.deployment.readinessProbe.initialDelaySeconds }}
+              periodSeconds: {{ .Values.deployment.readinessProbe.periodSeconds }}
+              timeoutSeconds: {{ .Values.deployment.readinessProbe.timeoutSeconds }}
+              successThreshold: {{ .Values.deployment.readinessProbe.successThreshold }}
+              failureThreshold: {{ .Values.deployment.readinessProbe.failureThreshold }}
+              {{- if .Values.deployment.readinessProbe.exec }}
+              exec:
+                {{- include "util.toYaml" ( dict "value" .Values.deployment.readinessProbe.exec "indent" 16 ) }}
+              {{- else if .Values.deployment.readinessProbe.httpGet }}
+              httpGet:
+                {{- include "util.toYaml" ( dict "value" .Values.deployment.readinessProbe.httpGet "indent" 16 ) }}
+              {{- else if .Values.deployment.readinessProbe.tcpSocket }}
+              tcpSocket:
+                {{- include "util.toYaml" ( dict "value" .Values.deployment.readinessProbe.tcpSocket "indent" 16 ) }}
+              {{- end }}
+            {{- end }}
+            env:
+              {{- range $envName, $value := .Values.deployment.env -}}
+              {{- if (eq $value.type "configmap") }}
+              - name: {{ $envName }}
+                valueFrom:
+                  configMapKeyRef:
+                    name: {{ include "project.name" $ }}-{{ $value.name }}
+                    key: {{ $value.key }}
+              {{- end }}
+              {{- if (eq $value.type "secret") }}
+              - name: {{ $envName }}
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ include "project.name" $ }}-{{ $value.name }}
+                    key: {{ $value.key }}
+              {{- end }}
+              {{- end }}
+{{- end }}

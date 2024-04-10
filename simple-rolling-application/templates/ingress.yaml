@@ -1,0 +1,34 @@
+{{- if .Values.secret.enabled -}}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "project.name" . }}
+  namespace: {{ include "project.namespace" . }}
+  labels:
+    {{- include "project.labels" . | nindent 4 }}
+    {{- include "util.toYaml" ( dict "value" .Values.ingress.labels "indent" 4 ) }}
+  annotations:
+    {{- include "util.toYaml" ( dict "value" .Values.ingress.annotations "indent" 4 ) }}
+spec:
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host }}
+      http:
+        paths:
+        {{- if .paths }}
+        {{- range .paths }}
+        - path: {{ .path }}
+          pathType: {{ .pathType }}
+          backend:
+            service:
+              name: {{ include "project.name" $ }}
+              port:
+                name: {{ .servicePort }}
+        {{- end }}
+        {{- else }}
+        {{ fail "Specify paths for ingress host, check values.yaml" }}
+        {{- end }}
+    {{- end -}}
+{{- end }}

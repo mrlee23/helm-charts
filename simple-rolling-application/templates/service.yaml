@@ -1,0 +1,20 @@
+{{- if .Values.secret.enabled -}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "project.name" . }}
+  namespace: {{ include "project.namespace" . }}
+  labels:
+    {{- include "project.labels" . | nindent 4 }}
+    {{- include "util.toYaml" ( dict "value" .Values.service.labels "indent" 4 ) }}
+  annotations:
+    {{- include "util.toYaml" ( dict "value" .Values.service.annotations "indent" 4 ) }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "project.selectorLabels" . | nindent 4 }}
+    {{- include "util.toYaml" ( dict "value" .Values.deployment.podLabels "indent" 4 ) }}
+  ports:
+    {{- include "util.toYaml" ( dict "value" .Values.service.ports "indent" 4 ) }}
+{{- end }}
