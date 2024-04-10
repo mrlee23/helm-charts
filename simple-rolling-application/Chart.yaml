@@ -1,7 +1,12 @@
 apiVersion: v2
 name: simple-rolling-application
+version: 0.1.0
 description: A Helm chart for Simple Rolling Application
 type: application
-version: 0.1.0
-appVersion: "1.16.0"
-
+keywords:
+  - application
+  - microservice
+home: https://github.com/mrlee23/helm-charts
+maintainers:
+- name: Dongsoo Lee
+  email: dongsoolee8@gmail.com

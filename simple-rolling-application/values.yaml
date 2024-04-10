@@ -1,11 +1,47 @@
-applicationName: "application"
+namespace: ""
 
-configMap: {}
+application: 
+  name: "application"
+  version: "0.1.0"
+  labels: {}
+  annotations: {}
 
-secrets:
-  opaque: {}
-  dockerconfigjson: {}
+configMap:
+  enabled: true
+  labels: {}
+  annotations: {}
+  data:
+    my-config1: {}
+    my-config2: {}
+
+secret:
+  enabled: true
+  labels: {}
+  annotations: {}
+  data:
+    opaque:
+      type: Opaque
+      labels: {}
+      annotations: {}
+      data: {}
+    dockerconfigjson:
+      type: kubernetes.io/dockerconfigjson
+      labels: {}
+      annotations: {}
+      data:
+        .dockerconfigjson: ""
+
+rbac:
+  enabled: false
 
 deployment:
   enabled: true
 
+autoscaling:
+  enabled: false
+
+service:
+  enabled: true
+
+ingress:
+  enabled: false
