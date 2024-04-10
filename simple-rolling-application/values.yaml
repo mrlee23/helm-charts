@@ -116,7 +116,7 @@ deployment:
       memory: 128Mi
 
 autoscaling:
-  enabled: true
+  enabled: false
   
   labels: {}
   annotations: {}
@@ -167,26 +167,26 @@ ingress:
         servicePort: http
 
 networkPolicy:
-  enabled: true
+  enabled: false
 
   labels: {}
   annotations: {}
 
   ingress:
-  - from:
-    - ipBlock:
-        cidr: 172.17.0.0/16
-        except:
-        - 172.17.1.0/24
-    - namespaceSelector:
-        matchLabels:
-          project: myproject
-    - podSelector:
-        matchLabels:
-          role: frontend
-    ports:
-    - protocol: TCP
-      port: 6379
+  # - from:
+  #   - ipBlock:
+  #       cidr: 172.17.0.0/16
+  #       except:
+  #       - 172.17.1.0/24
+  #   - namespaceSelector:
+  #       matchLabels:
+  #         project: myproject
+  #   - podSelector:
+  #       matchLabels:
+  #         role: frontend
+  #   ports:
+  #   - protocol: TCP
+  #     port: 6379
   egress:
   # - to:
   #   - ipBlock:
